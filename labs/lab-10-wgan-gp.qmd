@@ -1,0 +1,81 @@
+---
+title: "Lab 10: Wasserstein GAN with Gradient Penalty"
+---
+
+::: {.lab-question}
+**Fundamental question:** Why does Wasserstein distance make adversarial training smoother?
+:::
+
+## Short Intuition
+
+WGAN replaces the discriminator with a critic that scores samples. The critic estimates how much more real one distribution is than another. WGAN-GP enforces the Lipschitz constraint with a gradient penalty instead of clipping weights.
+
+## Executable Code Block
+
+```python
+import torch
+from torch import nn
+
+torch.manual_seed(67)
+
+def real_batch(batch_size):
+    return torch.randn(batch_size, 1) * 0.4 + 2.0
+
+G = nn.Sequential(nn.Linear(2, 32), nn.ReLU(), nn.Linear(32, 1))
+C = nn.Sequential(nn.Linear(1, 32), nn.ReLU(), nn.Linear(32, 1))
+
+opt_g = torch.optim.Adam(G.parameters(), lr=1e-4, betas=(0.0, 0.9))
+opt_c = torch.optim.Adam(C.parameters(), lr=1e-4, betas=(0.0, 0.9))
+
+def gradient_penalty(critic, real, fake):
+    batch_size = real.shape[0]
+    eps = torch.rand(batch_size, 1)
+    mixed = eps * real + (1 - eps) * fake
+    mixed.requires_grad_(True)
+    score = critic(mixed)
+    grad = torch.autograd.grad(
+        outputs=score,
+        inputs=mixed,
+        grad_outputs=torch.ones_like(score),
+        create_graph=True,
+        retain_graph=True,
+    )[0]
+    return ((grad.norm(2, dim=1) - 1.0) ** 2).mean()
+
+for step in range(700):
+    for _ in range(5):
+        real = real_batch(128)
+        fake = G(torch.randn(128, 2)).detach()
+        gp = gradient_penalty(C, real, fake)
+        c_loss = C(fake).mean() - C(real).mean() + 10.0 * gp
+        opt_c.zero_grad()
+        c_loss.backward()
+        opt_c.step()
+
+    fake = G(torch.randn(128, 2))
+    g_loss = -C(fake).mean()
+    opt_g.zero_grad()
+    g_loss.backward()
+    opt_g.step()
+
+print("critic loss:", c_loss.item())
+print("generator loss:", g_loss.item())
+print("generated mean:", G(torch.randn(512, 2)).mean().item())
+```
+
+## Hands-on Tasks & Solutions
+
+1. Remove the gradient penalty and observe how the critic loss behaves.
+2. Change the penalty coefficient from `10.0` to `1.0`. What trade-off appears?
+
+<details>
+<summary>Solution</summary>
+
+The penalty coefficient controls how strongly the critic is kept near 1-Lipschitz behavior. Too low may destabilize training. Too high can over-regularize the critic and slow learning.
+
+```python
+lambda_gp = 10.0
+c_loss = C(fake).mean() - C(real).mean() + lambda_gp * gradient_penalty(C, real, fake)
+```
+
+</details>

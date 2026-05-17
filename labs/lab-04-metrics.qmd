@@ -1,0 +1,63 @@
+---
+title: "Lab 04: Data Science Metrics"
+---
+
+::: {.lab-question}
+**Fundamental question:** Why can accuracy be useless under severe class imbalance?
+:::
+
+## Short Intuition
+
+If anomalies are less than `0.1%` of all events, a classifier can be almost perfectly accurate by predicting "normal" every time. Precision and recall force us to ask better questions: how many flagged cases were real, and how many real anomalies did we catch?
+
+## Executable Code Block
+
+```python
+import torch
+
+torch.manual_seed(17)
+
+n = 10_000
+y_true = torch.zeros(n, dtype=torch.int64)
+y_true[torch.randperm(n)[:8]] = 1
+
+scores = 0.04 * torch.randn(n)
+scores[y_true == 1] += 0.18
+y_pred = (scores > 0.10).to(torch.int64)
+
+tp = ((y_true == 1) & (y_pred == 1)).sum()
+fp = ((y_true == 0) & (y_pred == 1)).sum()
+fn = ((y_true == 1) & (y_pred == 0)).sum()
+tn = ((y_true == 0) & (y_pred == 0)).sum()
+
+precision = tp / (tp + fp).clamp_min(1)
+recall = tp / (tp + fn).clamp_min(1)
+beta = 2.0
+f_beta = (1 + beta**2) * precision * recall / ((beta**2 * precision + recall).clamp_min(1e-12))
+accuracy = (tp + tn) / n
+
+print({"tp": int(tp), "fp": int(fp), "fn": int(fn), "tn": int(tn)})
+print("accuracy:", accuracy.item())
+print("precision:", precision.item())
+print("recall:", recall.item())
+print("F2:", f_beta.item())
+```
+
+## Hands-on Tasks & Solutions
+
+1. Lower the threshold from `0.10` to `0.06`. What happens to precision and recall?
+2. Explain why `F2` is more appropriate than `F1` when missing anomalies is expensive.
+
+<details>
+<summary>Solution</summary>
+
+Lowering the threshold usually increases recall because more true anomalies are flagged. It also usually decreases precision because more normal observations become false positives.
+
+`F2` weights recall four times as strongly as precision because `beta^2 = 4`. That is useful when investigation cost is acceptable but missed anomalies are dangerous.
+
+```python
+beta = 2.0
+f2 = (1 + beta**2) * precision * recall / ((beta**2 * precision + recall).clamp_min(1e-12))
+```
+
+</details>

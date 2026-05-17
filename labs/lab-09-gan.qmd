@@ -1,0 +1,84 @@
+---
+title: "Lab 09: Generative Adversarial Networks"
+---
+
+::: {.lab-question}
+**Fundamental question:** How can two networks improve through competition?
+:::
+
+## Short Intuition
+
+A GAN trains a generator to create samples and a discriminator to distinguish real samples from generated ones. The discriminator learns a classification problem; the generator learns to make the discriminator wrong.
+
+## Executable Code Block
+
+```python
+import torch
+from torch import nn
+import torch.nn.functional as F
+
+torch.manual_seed(53)
+
+def real_batch(batch_size):
+    left = torch.randn(batch_size // 2, 1) * 0.25 - 1.5
+    right = torch.randn(batch_size - batch_size // 2, 1) * 0.25 + 1.5
+    return torch.cat([left, right], dim=0)
+
+G = nn.Sequential(nn.Linear(2, 16), nn.ReLU(), nn.Linear(16, 1))
+D = nn.Sequential(nn.Linear(1, 16), nn.ReLU(), nn.Linear(16, 1))
+
+opt_g = torch.optim.Adam(G.parameters(), lr=2e-3)
+opt_d = torch.optim.Adam(D.parameters(), lr=2e-3)
+
+for step in range(800):
+    real = real_batch(128)
+    noise = torch.randn(128, 2)
+    fake = G(noise).detach()
+
+    d_real = D(real)
+    d_fake = D(fake)
+    d_loss = F.binary_cross_entropy_with_logits(d_real, torch.ones_like(d_real))
+    d_loss = d_loss + F.binary_cross_entropy_with_logits(d_fake, torch.zeros_like(d_fake))
+    opt_d.zero_grad()
+    d_loss.backward()
+    opt_d.step()
+
+    noise = torch.randn(128, 2)
+    fake = G(noise)
+    g_loss = F.binary_cross_entropy_with_logits(D(fake), torch.ones_like(D(fake)))
+    opt_g.zero_grad()
+    g_loss.backward()
+    opt_g.step()
+
+with torch.no_grad():
+    generated = G(torch.randn(10, 2)).squeeze()
+
+print("D loss:", d_loss.item())
+print("G loss:", g_loss.item())
+print("generated samples:", generated)
+```
+
+## Hands-on Tasks & Solutions
+
+1. Train the discriminator three times for each generator update. Does the generator struggle?
+2. Replace the two real modes with one Gaussian centered at zero.
+
+<details>
+<summary>Solution</summary>
+
+Training the discriminator more often can help early learning, but if it becomes too strong, the generator may receive weak gradients. This is one reason GAN training requires pacing.
+
+```python
+for _ in range(3):
+    real = real_batch(128)
+    fake = G(torch.randn(128, 2)).detach()
+    d_loss = (
+        F.binary_cross_entropy_with_logits(D(real), torch.ones(128, 1))
+        + F.binary_cross_entropy_with_logits(D(fake), torch.zeros(128, 1))
+    )
+    opt_d.zero_grad()
+    d_loss.backward()
+    opt_d.step()
+```
+
+</details>

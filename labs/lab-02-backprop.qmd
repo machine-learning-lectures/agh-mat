@@ -1,0 +1,67 @@
+---
+title: "Lab 02: Backpropagation from Scratch"
+---
+
+::: {.lab-question}
+**Fundamental question:** How does error flow backward through matrix multiplication?
+:::
+
+## Short Intuition
+
+For a linear layer without bias, the forward pass is `Y_hat = XW`. If the loss is mean squared error, the gradient for `W` is a matrix product between the input transpose and the output error. Autograd automates this, but the math is small enough to verify directly.
+
+## Executable Code Block
+
+```python
+import torch
+
+torch.manual_seed(3)
+
+X = torch.randn(5, 3)
+W = torch.randn(3, 2, requires_grad=True)
+Y = torch.randn(5, 2)
+
+Y_hat = X @ W
+loss = ((Y_hat - Y) ** 2).mean()
+loss.backward()
+
+manual_dY = 2.0 * (Y_hat.detach() - Y) / Y.numel()
+manual_dW = X.T @ manual_dY
+
+print("autograd dW:")
+print(W.grad)
+print("manual dW:")
+print(manual_dW)
+print("match:", torch.allclose(W.grad, manual_dW, atol=1e-6))
+```
+
+## Hands-on Tasks & Solutions
+
+1. Replace the loss with `sum((Y_hat - Y) ** 2)` and derive the new gradient scale.
+2. Run one manual gradient descent step on `W`.
+
+<details>
+<summary>Solution</summary>
+
+```python
+import torch
+
+torch.manual_seed(3)
+
+X = torch.randn(5, 3)
+W = torch.randn(3, 2)
+Y = torch.randn(5, 2)
+
+lr = 0.05
+Y_hat = X @ W
+loss = ((Y_hat - Y) ** 2).sum()
+
+dY = 2.0 * (Y_hat - Y)
+dW = X.T @ dY
+W_next = W - lr * dW
+
+print("loss before:", loss.item())
+print("loss after:", (((X @ W_next) - Y) ** 2).sum().item())
+```
+
+</details>

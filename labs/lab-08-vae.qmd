@@ -1,0 +1,85 @@
+---
+title: "Lab 08: Variational Autoencoder"
+---
+
+::: {.lab-question}
+**Fundamental question:** How can an encoder map data to a smooth probability distribution?
+:::
+
+## Short Intuition
+
+A VAE encodes each input into a mean and variance, samples from that distribution, and decodes the sample. The reparameterization trick keeps the sampling step differentiable by writing `z = mu + sigma * eps`.
+
+## Executable Code Block
+
+```python
+import torch
+from torch import nn
+import torch.nn.functional as F
+
+torch.manual_seed(41)
+
+x = torch.randn(256, 4)
+x[:, 2:] = x[:, :2] @ torch.tensor([[0.8, -0.3], [0.4, 0.7]]) + 0.05 * torch.randn(256, 2)
+
+class VAE(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.backbone = nn.Sequential(nn.Linear(4, 16), nn.ReLU())
+        self.mu = nn.Linear(16, 2)
+        self.logvar = nn.Linear(16, 2)
+        self.decoder = nn.Sequential(nn.Linear(2, 16), nn.ReLU(), nn.Linear(16, 4))
+
+    def encode(self, x):
+        h = self.backbone(x)
+        return self.mu(h), self.logvar(h)
+
+    def reparameterize(self, mu, logvar):
+        eps = torch.randn_like(mu)
+        std = torch.exp(0.5 * logvar)
+        return mu + std * eps
+
+    def forward(self, x):
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu, logvar)
+        return self.decoder(z), mu, logvar
+
+model = VAE()
+opt = torch.optim.Adam(model.parameters(), lr=1e-2)
+
+for epoch in range(300):
+    recon, mu, logvar = model(x)
+    recon_loss = F.mse_loss(recon, x, reduction="mean")
+    kl = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
+    loss = recon_loss + 0.05 * kl
+    opt.zero_grad()
+    loss.backward()
+    opt.step()
+
+with torch.no_grad():
+    z = torch.randn(5, 2)
+    samples = model.decoder(z)
+
+print("last reconstruction loss:", recon_loss.item())
+print("last KL:", kl.item())
+print(samples)
+```
+
+## Hands-on Tasks & Solutions
+
+1. Set the KL weight to `0.0`. What happens to the latent regularization?
+2. Generate ten new samples from `N(0, I)` and inspect the decoder output.
+
+<details>
+<summary>Solution</summary>
+
+```python
+with torch.no_grad():
+    z = torch.randn(10, 2)
+    generated = model.decoder(z)
+    print(generated)
+```
+
+With KL weight `0.0`, the model behaves more like a stochastic autoencoder. Reconstruction may improve, but the latent space is less likely to match the standard normal prior, so random generation becomes less reliable.
+
+</details>

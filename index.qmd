@@ -1,0 +1,131 @@
+---
+pagetitle: "Interactive Machine Learning & Generative Models Labs"
+page-layout: full
+sidebar: false
+toc: false
+---
+
+::: {.hero}
+::: {.hero-copy}
+<div class="hero-title" id="interactive-machine-learning-generative-models-labs" role="heading" aria-level="1">Interactive Machine Learning & Generative Models Labs</div>
+
+Otwarta platforma laboratoriów dla studentów, prowadząca od tensorów i PCA do autoenkoderów, VAE, GAN, WGAN-GP i VQ-VAE.
+
+::: {.hero-actions}
+[Rozpocznij laboratoria](labs/index.qmd)
+[Zobacz roadmapę](#roadmap)
+:::
+:::
+:::
+
+## Założenie dydaktyczne
+
+Każde laboratorium odpowiada na jedno fundamentalne pytanie. Struktura jest stała: krótka intuicja, samodzielny blok kodu PyTorch/Python oraz zadania z ukrytą odpowiedzią. Kod w materiałach jest pokazywany bez wykonywania podczas budowania strony, dzięki czemu GitHub Pages pozostaje szybki i stabilny.
+
+::: {.pill-row}
+::: {.pill}
+Quarto
+:::
+::: {.pill}
+GitHub Pages
+:::
+::: {.pill}
+PyTorch
+:::
+::: {.pill}
+scikit-learn
+:::
+::: {.pill}
+Accessible palette
+:::
+:::
+
+::: {.band}
+## Ścieżka kursu
+
+::: {.module-grid}
+::: {.module-card}
+### 1. Intro to PyTorch
+Tensory, widoki, operacje wektorowe i gradienty.
+
+[Otwórz lab](labs/lab-01-pytorch.qmd)
+:::
+
+::: {.module-card}
+### 2. Backpropagation
+Ręczne gradienty dla mnożenia macierzy i weryfikacja autograd.
+
+[Otwórz lab](labs/lab-02-backprop.qmd)
+:::
+
+::: {.module-card}
+### 3. PCA
+Centrowanie danych, SVD i wariancja wyjaśniona.
+
+[Otwórz lab](labs/lab-03-pca.qmd)
+:::
+
+::: {.module-card}
+### 4. Metrics
+Precision, Recall i F-beta przy skrajnie niezbalansowanych klasach.
+
+[Otwórz lab](labs/lab-04-metrics.qmd)
+:::
+
+::: {.module-card}
+### 5. Isolation Forest
+Izolowanie anomalii krótkimi ścieżkami w losowych drzewach.
+
+[Otwórz lab](labs/lab-05-isolation-forest.qmd)
+:::
+
+::: {.module-card}
+### 6. Entropy and KL
+Niepewność rozkładu i koszt użycia przybliżenia.
+
+[Otwórz lab](labs/lab-06-entropy-kl.qmd)
+:::
+
+::: {.module-card}
+### 7. Autoencoder
+Bottleneck, rekonstrukcja i wykrywanie anomalii.
+
+[Otwórz lab](labs/lab-07-autoencoder.qmd)
+:::
+
+::: {.module-card}
+### 8. VAE
+Reparameterization trick, ELBO i generowanie próbek.
+
+[Otwórz lab](labs/lab-08-vae.qmd)
+:::
+
+::: {.module-card}
+### 9. GAN
+Dwóch optymalizatorów: generator kontra dyskryminator.
+
+[Otwórz lab](labs/lab-09-gan.qmd)
+:::
+
+::: {.module-card}
+### 10. WGAN-GP
+Wasserstein distance i gradient penalty.
+
+[Otwórz lab](labs/lab-10-wgan-gp.qmd)
+:::
+
+::: {.module-card}
+### 11. VQ-VAE
+Dyskretny kodbook, nearest neighbor i straight-through estimator.
+
+[Otwórz lab](labs/lab-11-vq-vae.qmd)
+:::
+:::
+:::
+
+## Roadmap {#roadmap}
+
+1. **Infrastructure:** Quarto project, GitHub Actions deployment, style system and reproducible Python environment.
+2. **Foundations:** labs 1-6 covering tensors, gradients, PCA, metrics, Isolation Forest and KL divergence.
+3. **Deep generative models:** labs 7-11 covering AE, VAE, GAN, WGAN-GP and optional VQ-VAE.
+4. **Validation:** browser checks, code block review and readability checks across screen sizes.

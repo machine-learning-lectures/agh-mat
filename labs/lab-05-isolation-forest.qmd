@@ -1,0 +1,60 @@
+---
+title: "Lab 05: Isolation Forest"
+---
+
+::: {.lab-question}
+**Fundamental question:** Can we detect anomalies by isolating them instead of modeling normality?
+:::
+
+## Short Intuition
+
+Isolation Forest builds random partition trees. Points far from dense regions are easier to isolate, so they tend to need fewer splits. The anomaly score is based on this short expected path length.
+
+## Executable Code Block
+
+```python
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+from sklearn.ensemble import IsolationForest
+
+torch.manual_seed(23)
+
+normal = torch.randn(450, 2) @ torch.tensor([[1.3, 0.2], [0.1, 0.7]])
+anomaly = torch.tensor([[4.0, 4.2], [-4.0, 3.7], [3.8, -3.5], [-3.8, -3.2]])
+X = torch.cat([normal, anomaly], dim=0)
+
+model = IsolationForest(n_estimators=200, contamination=0.02, random_state=23)
+model.fit(X.numpy())
+labels = model.predict(X.numpy())
+scores = -model.decision_function(X.numpy())
+
+xx, yy = np.meshgrid(np.linspace(-6, 6, 180), np.linspace(-6, 6, 180))
+grid = np.c_[xx.ravel(), yy.ravel()]
+zz = -model.decision_function(grid).reshape(xx.shape)
+
+plt.contourf(xx, yy, zz, levels=20, cmap="viridis")
+plt.scatter(X[:, 0], X[:, 1], c=(labels == -1), cmap="coolwarm", edgecolor="k", s=28)
+plt.title("Isolation Forest anomaly score")
+plt.show()
+
+print("top anomaly scores:", torch.tensor(scores).topk(5).values)
+```
+
+## Hands-on Tasks & Solutions
+
+1. Change `contamination` from `0.02` to `0.10`. How many points are flagged?
+2. Replace the visible outliers with a small cluster near `(2, 2)`. Is the model still confident?
+
+<details>
+<summary>Solution</summary>
+
+```python
+pred = model.predict(X.numpy())
+flagged = (pred == -1).sum()
+print("flagged points:", flagged)
+```
+
+Increasing `contamination` forces the model to label more observations as anomalous. A compact cluster near the normal data may become harder to isolate, so its anomaly score can be less extreme.
+
+</details>

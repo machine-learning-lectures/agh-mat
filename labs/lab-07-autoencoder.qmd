@@ -1,0 +1,71 @@
+---
+title: "Lab 07: Vanilla Autoencoder"
+---
+
+::: {.lab-question}
+**Fundamental question:** What does a narrow bottleneck force a neural network to remember?
+:::
+
+## Short Intuition
+
+An autoencoder compresses input `x` into a latent representation `z`, then reconstructs `x_hat`. If trained on normal data, it learns to reconstruct normal patterns well. Unusual inputs often have higher reconstruction error.
+
+## Executable Code Block
+
+```python
+import torch
+from torch import nn
+
+torch.manual_seed(31)
+
+normal = torch.randn(512, 6)
+normal[:, 3:] = normal[:, :3] @ torch.tensor([[0.8, -0.2, 0.4], [0.1, 0.6, -0.3], [-0.5, 0.2, 0.9]])
+anomaly = torch.randn(32, 6) + 4.0
+
+class Autoencoder(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.encoder = nn.Sequential(nn.Linear(6, 3), nn.ReLU(), nn.Linear(3, 2))
+        self.decoder = nn.Sequential(nn.Linear(2, 3), nn.ReLU(), nn.Linear(3, 6))
+
+    def forward(self, x):
+        z = self.encoder(x)
+        return self.decoder(z)
+
+model = Autoencoder()
+opt = torch.optim.Adam(model.parameters(), lr=1e-2)
+
+for epoch in range(250):
+    x_hat = model(normal)
+    loss = torch.mean((normal - x_hat) ** 2)
+    opt.zero_grad()
+    loss.backward()
+    opt.step()
+
+with torch.no_grad():
+    normal_error = torch.mean((normal - model(normal)) ** 2, dim=1)
+    anomaly_error = torch.mean((anomaly - model(anomaly)) ** 2, dim=1)
+
+print("normal reconstruction error:", normal_error.mean().item())
+print("anomaly reconstruction error:", anomaly_error.mean().item())
+```
+
+## Hands-on Tasks & Solutions
+
+1. Increase latent dimension from `2` to `4`. Does anomaly separation improve or weaken?
+2. Use the 95th percentile of normal reconstruction error as an anomaly threshold.
+
+<details>
+<summary>Solution</summary>
+
+```python
+threshold = torch.quantile(normal_error, 0.95)
+flags = anomaly_error > threshold
+
+print("threshold:", threshold.item())
+print("anomalies flagged:", int(flags.sum()), "out of", len(flags))
+```
+
+A larger bottleneck can reconstruct more details, including some abnormal patterns. It may reduce normal error but also reduce separation between normal and anomalous examples.
+
+</details>

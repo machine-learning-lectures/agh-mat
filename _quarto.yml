@@ -1,0 +1,63 @@
+project:
+  type: website
+  output-dir: _site
+
+website:
+  title: "Interactive ML Labs"
+  page-navigation: true
+  navbar:
+    pinned: true
+    left:
+      - text: "Start"
+        href: index.qmd
+      - text: "Labs"
+        href: labs/index.qmd
+      - text: "Roadmap"
+        href: index.qmd#roadmap
+  sidebar:
+    style: "docked"
+    search: true
+    contents:
+      - text: "Overview"
+        href: labs/index.qmd
+      - section: "Foundations"
+        contents:
+          - text: "1. Intro to PyTorch"
+            href: labs/lab-01-pytorch.qmd
+          - text: "2. Backpropagation"
+            href: labs/lab-02-backprop.qmd
+          - text: "3. PCA"
+            href: labs/lab-03-pca.qmd
+          - text: "4. Metrics"
+            href: labs/lab-04-metrics.qmd
+          - text: "5. Isolation Forest"
+            href: labs/lab-05-isolation-forest.qmd
+          - text: "6. Entropy and KL"
+            href: labs/lab-06-entropy-kl.qmd
+      - section: "Generative Models"
+        contents:
+          - text: "7. Autoencoder"
+            href: labs/lab-07-autoencoder.qmd
+          - text: "8. VAE"
+            href: labs/lab-08-vae.qmd
+          - text: "9. GAN"
+            href: labs/lab-09-gan.qmd
+          - text: "10. WGAN-GP"
+            href: labs/lab-10-wgan-gp.qmd
+          - text: "11. VQ-VAE"
+            href: labs/lab-11-vq-vae.qmd
+
+format:
+  html:
+    theme: cosmo
+    css: styles.css
+    toc: true
+    code-copy: true
+    code-overflow: wrap
+    smooth-scroll: true
+
+execute:
+  eval: false
+  warning: false
+  message: false
+  freeze: auto

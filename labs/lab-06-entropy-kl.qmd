@@ -1,0 +1,53 @@
+---
+title: "Lab 06: Entropy and KL Divergence"
+---
+
+::: {.lab-question}
+**Fundamental question:** How much information do we lose when we use the wrong distribution?
+:::
+
+## Short Intuition
+
+Entropy measures uncertainty. KL divergence measures the extra information needed when distribution `Q` is used to approximate the true distribution `P`. In VAEs, KL becomes the term that keeps the learned latent distribution close to a simple prior.
+
+## Executable Code Block
+
+```python
+import torch
+from torch.distributions import Normal, kl_divergence
+
+mu = torch.tensor([0.8])
+sigma = torch.tensor([1.4])
+
+p = Normal(torch.tensor([0.0]), torch.tensor([1.0]))
+q = Normal(mu, sigma)
+
+# KL(q || p) for univariate Gaussians.
+manual = 0.5 * (sigma.pow(2) + mu.pow(2) - 1.0 - torch.log(sigma.pow(2)))
+native = kl_divergence(q, p)
+
+print("manual KL(q || p):", manual.item())
+print("torch KL(q || p):", native.item())
+print("match:", torch.allclose(manual, native))
+```
+
+## Hands-on Tasks & Solutions
+
+1. Compute KL for `mu = 0` and `sigma = 1`. What should the value be?
+2. Increase only `mu`. Why does KL grow?
+
+<details>
+<summary>Solution</summary>
+
+When `mu = 0` and `sigma = 1`, both distributions are identical, so KL is zero.
+
+```python
+mu = torch.tensor([0.0])
+sigma = torch.tensor([1.0])
+kl = 0.5 * (sigma.pow(2) + mu.pow(2) - 1.0 - torch.log(sigma.pow(2)))
+print(kl.item())
+```
+
+Increasing `mu` shifts `q` away from the standard normal prior. The approximation now pays an information penalty for placing probability mass in different locations.
+
+</details>
