@@ -42,6 +42,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - name: Let legacy Pages build finish
+        if: github.event_name == 'push'
+        run: sleep 45
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
