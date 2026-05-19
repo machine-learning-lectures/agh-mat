@@ -2,6 +2,8 @@
 
 Quarto site for university labs covering PyTorch fundamentals, PCA, anomaly metrics, Isolation Forest, entropy/KL divergence, autoencoders, VAEs, GANs, WGAN-GP, and VQ-VAE.
 
+The `materials/` section is a shared mobile-readable index for classic labs and PyTorch notebook exercises. Notebook pages include step-by-step notes, judge checks, and collapsed reference solutions.
+
 Repository: https://github.com/machine-learning-lectures/agh-mat
 
 Published site: https://machine-learning-lectures.github.io/agh-mat/
@@ -13,6 +15,13 @@ quarto preview
 ```
 
 The pages show executable Python/PyTorch scripts without evaluating them during the website build. Students can copy a script from a lab page and run it in a Python 3.11/3.12 environment.
+
+To refresh the generated PyTorch notebook pages:
+
+```powershell
+python scripts\prepare_pytorch_pages.py
+quarto render
+```
 
 ## Lab environment
 
